@@ -1,147 +1,178 @@
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
 # mmsu
 
-**mmsu** is an R package designed to create and run deterministic models of the spread of antimalarial drug resistance. This package provides a range of functionalities to simulate malaria transmission dynamics and visualize the results.
+**mmsu** is an R package designed to create and run deterministic models
+of the spread of antimalarial drug resistance. This package provides a
+range of functionalities to simulate malaria transmission dynamics and
+visualize the results.
 
 ## Installation
 
-To install the package, you can use the `devtools` package to install directly from GitHub:
+To install the package, you can use the `devtools` package to install
+directly from GitHub:
 
-```{r}
-if (!requireNamespace("devtools", quietly = TRUE)) {
-    install.packages("devtools")
-}
-devtools::install_github("ChaokunHong/MalariaResistSim")
+``` r
+# devtools::install_github("OJWatson/mmsu")
+library(mmsu)
 ```
 
 ## Dependencies
 
-The package imports several other R packages, including: **odin**, **ICDMM**, **tidyr**, **stats**, **ggplot2**, **data.table**, **utils**, **dplyr**, **Rcpp**, **magrittr**. These packages will be installed automatically when you install the **mmsu** package.
+The package imports several other R packages, including: **odin**,
+**ICDMM**, **tidyr**, **stats**, **ggplot2**, **data.table**, **utils**,
+**dplyr**, **Rcpp**, **magrittr**. These packages will be installed
+automatically when you install the **mmsu** package.
 
 ## Usage
 
 ### Creating a Malaria Model
 
-The **malaria_model** function is used to create a model of malaria transmission dynamics. You can either provide a list of parameters directly or generate parameters based on the Entomological Inoculation Rate (EIR) and treatment rate (ft).
+The **malaria_model** function is used to create a model of malaria
+transmission dynamics. You can either provide a list of parameters
+directly or generate parameters based on the Entomological Inoculation
+Rate (EIR) and treatment rate (ft).
 
-#### Example 1: Create a model using parameters
+#### Example 1: Create a model using EIR and treatment rate
 
-```{r}
-library(mmsu)
-
-# Define parameters
-params <- list(
-  S = 1000, D = 10, A = 5, T = 3, Sv = 200, Ev = 10, Iv = 5,
-  m = 0.1, a = 0.3, b = 0.55, phi = 0.3, fT = 0.5, rD = 0.1, rA = 0.1,
-  rT_S = 0.1, rT_R = 0.1, e = 0.2, mu = 0.1, n = 10, cA = 0.1, cD = 0.2, cT = 0.3,
-  ton = 5000, toff = 50000, res_time = 3000, init_res = 0.01, rTR_true = 0.1
-)
-
-# Create the model
-model <- malaria_model(params = params)
-
-# Print model summary
-print(model)
-```
-
-#### Example 2: Create a model using EIR and treatment rate
-
-```{r}
+``` r
 # Create the model using EIR and ft
 model <- malaria_model(EIR = 10, ft = 0.5)
 
-# Print model summary
-print(model)
-```
-
-### Running the Model
-
-Once the model is created, you can run it over a specified period and visualize the results. \#### Example: Run the model for 1000 days
-
-```{r}
 # Run the model for 1000 days
 results <- model$run(0:1000)
 
 # Plot the results
-plot <- plot_model(results, res_time = 3000, ton = 5000, toff = 50000)
-print(plot)
+plot <- plot_model(results, c("S", "prevalence"))
 ```
 
-### Running the Model Over Ranges of Parameters
+![](README-unnamed-chunk-3-1.png)<!-- -->
 
-The **range_model** function allows you to run the model over a range of parameter values and summarize the results. \#### Example: Run the model over parameter ranges
+The model is set up to start at steady state equilibrium for the
+parameters provided, which is why outputs are flat over time.
 
-```{r}
-# Define parameter ranges
-param_ranges <- list(EIR = seq(1, 20, by = 1), ft = seq(0.1, 0.9, by = 0.1))
+#### Example 2: Create a model by specfiying all parameters and initial conditions
 
-# Run the model over the parameter ranges
-range_results <- range_model(param_ranges, run_time = 1000, time_points = c(100, 200, 300, 400, 500))
+If we provide parameters that are not the steady state equilibrium the
+model will then be seen to move towards this. In general, we will always
+intialise a model using just EIR and ft so that we do not have to wait
+for the model to reach equilibrium.
 
-# Plot the results for the parameter ranges
-plot <- plot_range(range_results, x_var = "EIR", y_var = "prevalence", color_var = "ft")
-print(plot)
-```
+``` r
 
-### Using **modelrun** for Custom Simulations
-
-The **modelrun** function allows you to run the model with custom parameters and visualize the results. \#### Example: Run the model with custom parameters
-
-```{r}
 # Define parameters
 params <- list(
   S = 1000, D = 10, A = 5, T = 3, Sv = 200, Ev = 10, Iv = 5,
-  m = 0.1, a = 0.3, b = 0.55, phi = 0.3, fT = 0.5, rD = 0.1, rA = 0.1,
-  rT_S = 0.1, rT_R = 0.1, e = 0.2, mu = 0.1, n = 10, cA = 0.1, cD = 0.2, cT = 0.3,
-  ton = 5000, toff = 50000, res_time = 3000, init_res = 0.01, rTR_true = 0.1
+  m = 0.1, a = 0.3, b = 0.55, phi = 0.3, ft = 0.5, rD = 0.1, rA = 0.1,
+  rT_s = 0.1, rT_r = 0.1, e = 0.2, mu = 0.1, n = 10, cA = 0.1, cD = 0.2, cT = 0.3,
+  ton = 5000, toff = 50000, res_time = 3000, init_res = 0.01, rT_r_true = 0.1
 )
 
 # Create the model
 model <- malaria_model(params = params)
 
-# Define custom time points
-time_points <- c(0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000)
+# Run the model for 1000 days
+results <- model$run(0:1000)
 
-# Run the model with custom time points
-results <- model$run(time_points)
-
-# Print the results
-print(results)
+# Plot the results
+plot <- plot_model(results, c("S", "prevalence", "prevalence_res"))
 ```
+
+![](README-unnamed-chunk-4-1.png)<!-- -->
+
+### Running the model to look at impact of resistance
+
+The dafults set the model up with the effect of resistant parasites not
+being modelled. Currently, resistant parasites have an extra parameter
+which governs the speed at which a treated indiviudal recovers. If this
+is slower than wild type parasites we would expect a selective benefit
+to occur and the model system to move to a new equilibrium.
+
+#### Example: Resistance 100 times slower treatment rates
+
+We set up the model by passing in what the initial resistance prevalence
+is at t = 0, what the treatment rate is for resistance when we turn it
+on, and the time we turn on the effect of resitsance (ton). We use this
+so that we can check that our model is at steady state before this and
+we can more easily see the impact of resistance when it is turned on
+
+``` r
+
+# Create the model using EIR and ft
+model <- malaria_model(EIR = 10, ft = 0.5, rT_r_true = 0.002, day0_res = 0.1, ton = 500)
+
+# Run the model for 5000 days
+results <- model$run(0:5000)
+
+# Plot the results
+plot <- plot_model(results, c("S", "prevalence", "prevalence_res"))
+```
+
+![](README-unnamed-chunk-5-1.png)<!-- -->
 
 ### Creating Equilibrium Initial Conditions
 
-The **equilibrium_init_create** function generates initial conditions for the model based on equilibrium assumptions. \#### Example: Create equilibrium initial conditions
+We have discussed the concept of the equilibrium state and solution. The
+malaria model has been created so that it has a steady state
+equilibrium. To see a bit more about how this is created internally by
+some of the funcitons above.
 
-```{r}
+#### Example: Create equilibrium initial conditions
+
+``` r
 # Define parameters
-params <- list(EIR = 10, ft = 0.5, phi = 0.3, b = 0.55, m = 0.1, a = 0.3, cA = 0.1, cD = 0.2, cT = 0.3, n = 10, mu = 0.1, rD = 0.1, rA = 0.1, rT_S = 0.1, rT_R = 0.1)
+params <- list(
+  EIR = 10,
+  ft = 0.5,
+  phi = 0.3,
+  b = 0.55,
+  m = 0.1,
+  a = 0.3,
+  cA = 0.1,
+  cD = 0.2,
+  cT = 0.3,
+  n = 10,
+  mu = 0.1,
+  rD = 0.1,
+  rA = 0.1,
+  rU = 1 / 110.299,
+  rT_s = 0.1,
+  rT_r = 0.1
+)
 
 # Create equilibrium initial conditions
 equilibrium_init <- equilibrium_init_create(params)
 
 # Print equilibrium initial conditions
 print(equilibrium_init)
+#>   EIR  ft         S          D         A          T phi    b        m        Sv
+#> 1  10 0.5 0.8502543 0.02162516 0.1064954 0.02162516 0.3 0.55 4.103797 0.9395085
+#>           Ev         Iv   a  cA  cD  cT  n  mu  rD          rA rT_s rT_r
+#> 1 0.03823793 0.02225359 0.3 0.1 0.2 0.3 10 0.1 0.1 0.008312621  0.1  0.1
 ```
 
-### Generating Parameters Based on EIR and ft
+#### Example: Generate parameters based on EIR and ft using `phi_eir_rel`
 
-The **phi_eir_rel** function generates a list of model parameters based on specified values of EIR and ft. 
-
-#### Example: Generate parameters based on EIR and ft
-
-```{r}
+``` r
 # Generate parameters
 params <- phi_eir_rel(EIR = 10, ft = 0.5)
 
 # Print generated parameters
 print(params)
+#>   EIR  ft         S           D         A           T      phi        b
+#> 1  10 0.5 0.3142287 0.004491399 0.6767885 0.004491399 0.157997 0.418798
+#>          m        Sv         Ev        Iv         a         cA        cD
+#> 1 5.508219 0.9392847 0.04449609 0.0162192 0.3066667 0.04051686 0.0676909
+#>           cT  n    mu  rD    rA rT_s rT_r
+#> 1 0.02179647 10 0.132 0.2 0.004  0.2  0.2
 ```
 
 ## Contributing
 
-Contributions to the package are welcome. You can contribute by reporting issues, suggesting new features, or submitting pull requests.
+Contributions to the package are welcome. You can contribute by
+reporting issues, suggesting new features, or submitting pull requests.
 
 ## License
 
 This package is licensed under the GPL-3 license.
-

@@ -1,3 +1,18 @@
+---
+output:
+  rmarkdown::github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "README-"
+)
+```
+
 # mmsu
 
 **mmsu** is an R package designed to create and run deterministic models of the spread of antimalarial drug resistance. This package provides a range of functionalities to simulate malaria transmission dynamics and visualize the results.
