@@ -47,7 +47,7 @@ results <- model$run(0:1000)
 plot <- plot_model(results, c("S", "prevalence"))
 ```
 
-![](README-unnamed-chunk-3-1.png)<!-- -->
+<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
 
 The model is set up to start at steady state equilibrium for the
 parameters provided, which is why outputs are flat over time.
@@ -79,7 +79,7 @@ results <- model$run(0:1000)
 plot <- plot_model(results, c("S", "prevalence", "prevalence_res"))
 ```
 
-![](README-unnamed-chunk-4-1.png)<!-- -->
+<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
 
 ### Running the model to look at impact of resistance
 
@@ -109,7 +109,7 @@ results <- model$run(0:5000)
 plot <- plot_model(results, c("S", "prevalence", "prevalence_res"))
 ```
 
-![](README-unnamed-chunk-5-1.png)<!-- -->
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
 
 ### Creating Equilibrium Initial Conditions
 
