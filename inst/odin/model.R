@@ -6,44 +6,44 @@ deriv(S) <- (-S * lambda_s * (phi * ft + phi * (1 - ft) + (1 - phi)) -
                T_s * rT_s + A_s * rA + A_r * rA + T_r * rT_r)
 
 deriv(D_s) <- (S * lambda_s * phi * (1 - ft) +
-                lambda_s * A_r * phi * (1 - ft) +
-                lambda_s * A_s * phi * (1 - ft) -
-                D_s * rD) - invading_D_r
+                 lambda_s * A_r * phi * (1 - ft) +
+                 lambda_s * A_s * phi * (1 - ft) -
+                 D_s * rD) - invading_D_r
 
 deriv(A_s) <- (S * lambda_s * (1 - phi) +
-                lambda_s * A_r * (1 - phi) +
-                D_s * rD -
-                lambda_s * A_s * phi * (1 - ft) -
-                lambda_s * A_s * phi * ft -
-                lambda_r * A_s * phi * (1 - ft) -
-                lambda_r * A_s * phi * ft -
-                lambda_r * A_s * (1 - phi) -
-                A_s * rA - invading_A_r)
+                 lambda_s * A_r * (1 - phi) +
+                 D_s * rD -
+                 lambda_s * A_s * phi * (1 - ft) -
+                 lambda_s * A_s * phi * ft -
+                 lambda_r * A_s * phi * (1 - ft) -
+                 lambda_r * A_s * phi * ft -
+                 lambda_r * A_s * (1 - phi) -
+                 A_s * rA - invading_A_r)
 
 deriv(T_s) <- (S * lambda_s * phi * ft +
-                lambda_s * A_r * phi * ft +
-                lambda_s * A_s * phi * ft -
-                T_s * rT_s) - invading_T_r
+                 lambda_s * A_r * phi * ft +
+                 lambda_s * A_s * phi * ft -
+                 T_s * rT_s) - invading_T_r
 
 deriv(D_r) <- invading_D_r + (S * lambda_r * phi * (1 - ft) +
-                lambda_r * A_s * phi * (1 - ft) +
-                lambda_r * A_r * phi * (1 - ft) -
-                D_r * rD)
+                                lambda_r * A_s * phi * (1 - ft) +
+                                lambda_r * A_r * phi * (1 - ft) -
+                                D_r * rD_r)
 
 deriv(A_r) <- invading_A_r + (S * lambda_r * (1 - phi) +
-                              lambda_r * A_s * (1 - phi) +
-                              D_r * rD -
-                              lambda_r * A_r * phi * (1 - ft) -
-                              lambda_r * A_r * phi * ft -
-                              lambda_s * A_r * phi * (1 - ft) -
-                              lambda_s * A_r * phi * ft -
-                              lambda_s * A_r * (1 - phi) -
-                              A_r * rA)
+                                lambda_r * A_s * (1 - phi) +
+                                D_r * rD -
+                                lambda_r * A_r * phi * (1 - ft) -
+                                lambda_r * A_r * phi * ft -
+                                lambda_s * A_r * phi * (1 - ft) -
+                                lambda_s * A_r * phi * ft -
+                                lambda_s * A_r * (1 - phi) -
+                                A_r * rA_r)
 
 deriv(T_r) <- invading_T_r + (S * lambda_r * phi * ft +
-                lambda_r * A_r * phi * ft +
-                lambda_r * A_s * phi * ft -
-                T_r * rT_r)
+                                lambda_r * A_r * phi * ft +
+                                lambda_r * A_s * phi * ft -
+                                T_r * rT_r)
 
 # Mosquito Equations
 deriv(Sv) <- mu - (lambda_v_s + lambda_v_r) * Sv - mu * Sv
@@ -83,6 +83,23 @@ invading_Ev_r <- if(t < res_time || t > (res_time+1)) 0 else Ev_s*log(1/(1-init_
 invading_Iv_r <- if(t < res_time || t > (res_time+1)) 0 else Iv_s*log(1/(1-init_res))
 output(invading_A_r_out) <- invading_A_r
 
+# FOI
+lambda_s <- m * a * b * Iv_s
+lambda_r <- m * a * b * Iv_r
+
+# (modify lambda_v_r to include transmission multiplier)
+lambda_v_s <- a * (cA * A_s + cD * D_s + cT * T_s)
+# scale infectiousness of treated resistant individuals
+lambda_v_r <- a * (cA * A_r + cD * D_r + cT * T_r * if (t > ton && t < toff) resistance_trans_mult else 1)
+
+# extend infection duration for resistant parasites (slower clearance)
+# and use ton and toff to set when resistance siwtches on
+rT_r <- (if (t > ton && t < toff) rT_r_true else rT_s)
+
+# Adjusted recovery rates for resistant infections (slower if resistance_dur_mult > 1)
+rD_r <- rD / if (t > ton && t < toff) resistance_dur_mult else 1   # symptomatic (untreated) infection duration for resistant
+rA_r <- rA / if (t > ton && t < toff) resistance_dur_mult else 1   # asymptomatic infection duration for resistant
+
 # Initial conditions
 initial(S) <- S0
 initial(D_s) <- D_s0
@@ -108,17 +125,11 @@ T_r0 <- user()
 m <- user()
 a <- user()
 b <- user()
-lambda_s <- m * a * b * Iv_s
-lambda_r <- m * a * b * Iv_r
-lambda_v_s <- a * (cA * A_s + cD * D_s + cT * T_s)
-lambda_v_r <- a * (cA * A_r + cD * D_r + cT * T_r)
 phi <- user()
 ft <- user()
 rD <- user()
 rA <- user()
 rT_s <- user()
-rT_r_true <- user()
-rT_r <- if (t > ton && t < toff) rT_r_true else rT_s
 Sv0 <- user()
 Ev_s0 <- user()
 Iv_s0 <- user()
@@ -129,7 +140,12 @@ n <- user()
 cA <- user()
 cD <- user()
 cT <- user()
+
+# user parameters related to resistance
+rT_r_true <- user()
 ton <- user()
 toff <- user()
 res_time <- user()
 init_res <- user()
+resistance_trans_mult <- user()   # user-specified transmission multiplier for resistant parasites (default = 1)
+resistance_dur_mult <- user()    # user-specified duration multiplier for resistant infections (default = 1)

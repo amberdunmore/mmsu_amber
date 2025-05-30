@@ -12,7 +12,9 @@ phi_eir_rel(
   init_res = 0.01,
   res_time = 3000,
   rT_r_true = 0.2,
-  day0_res = 0.01
+  day0_res = 0.01,
+  resistance_trans_mult = 1,
+  resistance_dur_mult = 1
 )
 }
 \arguments{
@@ -31,6 +33,10 @@ phi_eir_rel(
 \item{rT_r_true}{True treatment rate for resistant parasites}
 
 \item{day0_res}{Resistant at Day 0. Default = 0}
+
+\item{resistance_trans_mult}{transmission multiplier for resistant parasites (default = 1)}
+
+\item{resistance_dur_mult}{duration multiplier for resistant infections (default = 1)}
 }
 \value{
 A list of generated parameters.

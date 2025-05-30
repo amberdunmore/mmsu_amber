@@ -8,12 +8,14 @@ malaria_model(
   params = NULL,
   EIR = NULL,
   ft = NULL,
-  ton = 5000,
-  toff = 50000,
-  day0_res = 0,
-  init_res = 0.01,
-  res_time = 3000,
-  rT_r_true = 0.1,
+  ton = 365,
+  toff = 4015,
+  day0_res = 0.01,
+  init_res = 0,
+  res_time = 0,
+  rT_r_true = 0,
+  resistance_trans_mult = 1,
+  resistance_dur_mult = 1,
   verbose = FALSE
 )
 }
@@ -24,9 +26,9 @@ malaria_model(
 
 \item{ft}{Treatment rate (used if params is NULL)}
 
-\item{ton}{Time at which treatment is turned on}
+\item{ton}{Time at which resistance is turned on}
 
-\item{toff}{Time at which treatment is turned off}
+\item{toff}{Time at which resistance is turned off}
 
 \item{day0_res}{Resistant at Day 0. Default = 0.01}
 
@@ -35,6 +37,10 @@ malaria_model(
 \item{res_time}{Time at which resistance is introduced}
 
 \item{rT_r_true}{True treatment rate for resistant parasites}
+
+\item{resistance_trans_mult}{transmission multiplier for resistant parasites (default = 1)}
+
+\item{resistance_dur_mult}{duration multiplier for resistant infections (default = 1)}
 
 \item{verbose}{Logical. If TRUE, prints detailed logs. Default is FALSE.}
 }
