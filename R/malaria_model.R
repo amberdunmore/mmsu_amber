@@ -3,25 +3,30 @@
 #' @param params A list of parameters to pass to the model. If NULL, parameters will be generated based on EIR and ft.
 #' @param EIR Entomological Inoculation Rate (used if params is NULL)
 #' @param ft Treatment rate (used if params is NULL)
-#' @param ton Time at which treatment is turned on
-#' @param toff Time at which treatment is turned off
+#' @param ton Time at which resistance is turned on
+#' @param toff Time at which resistance is turned off
 #' @param init_res Initial resistance level at res_time
 #' @param day0_res Resistant at Day 0. Default = 0.01
 #' @param res_time Time at which resistance is introduced
 #' @param rT_r_true True treatment rate for resistant parasites
+#' @param resistance_trans_mult transmission multiplier for resistant parasites (default = 1)
+#' @param resistance_dur_mult duration multiplier for resistant infections (default = 1)
 #' @param verbose Logical. If TRUE, prints detailed logs. Default is FALSE.
 #' @return An object of class `odin_model`.
 #' @export
 malaria_model <- function(params = NULL, EIR = NULL, ft = NULL,
-                          ton = 5000, toff = 50000, day0_res = 0,
-                          init_res = 0.01, res_time = 3000, rT_r_true = 0.1,
+                          ton = 365, toff = 4015, day0_res = 0.01,
+                          init_res = 0.0, res_time = 0, rT_r_true = 0.0,
+                          resistance_trans_mult = 1, resistance_dur_mult = 1,
                           verbose = FALSE) {
 
     if (is.null(params)) {
       if (is.null(EIR) || is.null(ft)) {
         stop("Either params or both EIR and ft must be provided")
       }
-      params <- phi_eir_rel(EIR, ft, ton, toff, init_res, res_time, rT_r_true)
+      params <- phi_eir_rel(EIR, ft, ton, toff, init_res, res_time, rT_r_true,
+                            resistance_trans_mult = resistance_trans_mult,
+                            resistance_dur_mult = resistance_dur_mult)
     }
 
     # Update parameters
@@ -30,6 +35,8 @@ malaria_model <- function(params = NULL, EIR = NULL, ft = NULL,
     params$init_res <- init_res
     params$res_time <- res_time
     params$rT_r_true <- rT_r_true
+    params$resistance_trans_mult <- resistance_trans_mult  # add transmission multiplier (default 1 if not provided)
+    params$resistance_dur_mult <- resistance_dur_mult      # add duration multiplier (default 1 if not provided)
 
     # Generate initial parameters if not already present
     if (!"S0" %in% names(params)) {
@@ -55,7 +62,8 @@ malaria_model <- function(params = NULL, EIR = NULL, ft = NULL,
                          "Sv0", "Ev_s0", "Iv_s0", "Ev_r0", "Iv_r0",
                          "m", "a", "b", "phi", "ft", "rD", "rA", "rT_s", "rT_r",
                          "mu", "n", "cA", "cD", "cT",
-                         "ton", "toff", "res_time", "init_res")
+                         "ton", "toff", "res_time", "init_res",
+                         "resistance_trans_mult", "resistance_dur_mult")
     missing_params <- setdiff(required_params, names(params))
     if (length(missing_params) > 0) {
       stop("Missing required parameters: ", paste(missing_params, collapse = ", "))
@@ -78,7 +86,10 @@ malaria_model <- function(params = NULL, EIR = NULL, ft = NULL,
     if (verbose) {
       cat("Initializing model with parameters...\n")
     }
+
+    # create our model
     model_instance <- model$new(user = params, unused_user_action = "ignore")
+
     if (verbose) {
       cat("Model initialized successfully.\n")
     }
